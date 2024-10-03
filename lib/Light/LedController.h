@@ -6,11 +6,12 @@
 class LedController
 {
     private:
-        bool lastState;
+        unsigned long lastBlink = 0;
+        unsigned const int blinkMicros = 1000;
 
     public:
         LedController();
-        void run();
+        void run(bool clicked);
 };
 
 #endif

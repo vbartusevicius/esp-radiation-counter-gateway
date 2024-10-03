@@ -12,19 +12,17 @@ class Stats
         String ipAddress = "";
         String network = "";
         String uptime = "";
-        String relativeDistance = "";
-        float fractionalDistance = 0.0;
-        float measurement = 0.0;
-
+        
         bool mqttConnected = false;
-        bool sensorConnected = false;
+        int cpm = 0;
+        float dose = 0.0;
 
     public:
         Stats();
         void updateStats(
-            float measurement, 
-            float relativeDistance, 
-            bool mqttConnected
+            bool mqttConnected,
+            int cpm,
+            float dose
         );
 };
 

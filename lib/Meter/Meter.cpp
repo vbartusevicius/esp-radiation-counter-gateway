@@ -1,31 +1,34 @@
 #include "Meter.h"
 
-Meter::Meter(Logger* logger)
+Meter::Meter()
 {
-    this->logger = logger;
-    this->speedOfSound = 331.3 * sqrt(1 + (Meter::CURRENT_TEMP / Meter::ABSOLUTE_TEMP));
+    Meter::instance = this;
 
-    pinMode(Meter::TRIG_PIN, OUTPUT);
-    pinMode(Meter::ECHO_PIN, INPUT_PULLUP);
+    pinMode(this->CNT_PIN, INPUT);
+    attachInterrupt(digitalPinToInterrupt(this->CNT_PIN), handleInterrupt, CHANGE);
 }
 
-/*
- * returns the measured distance from the sensor to the column in meters
- */
-float Meter::measure()
+void IRAM_ATTR Meter::handleInterrupt()
 {
-    digitalWrite(Meter::TRIG_PIN, LOW);
-    delayMicroseconds(2);
+    if (instance == nullptr) {
+        return;
+    }
 
-    digitalWrite(Meter::TRIG_PIN, HIGH);
-    delayMicroseconds(20);
-    digitalWrite(Meter::TRIG_PIN, LOW);
+    int pinState = digitalRead(instance->CNT_PIN);
 
-    unsigned long pulse = pulseIn(Meter::ECHO_PIN, HIGH, 100000);
-    double timeTook = (double) pulse / 1000000; // time in seconds
-    float distance = this->speedOfSound * timeTook / 2;
-
-    this->logger->info("Measurement taken. distance: " + String(distance) + "m.");
-
-    return distance;
+    if (pinState == HIGH) {
+        instance->counter++;
+        instance->clicked = true;
+    }
 }
+
+int Meter::read()
+{
+    noInterrupts();
+    int clicks = this->counter;
+    this->counter = 0;
+    interrupts();
+    return clicks;
+}
+
+Meter* Meter::instance = nullptr;

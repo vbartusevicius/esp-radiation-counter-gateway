@@ -3,19 +3,20 @@
 
 #include <queue>
 #include "Storage.h"
+#include "Result.cpp"
 
 using namespace std;
 
 class Aggregator
 {
     private:
-        vector<float> buffer;
+        static const int MAX_SIZE = 60;
+        vector<int> buffer;
         Storage* storage;
     
     public:
         Aggregator(Storage* storage);
-        float aggregate(float value);
-
+        Result aggregate(int value);
 };
 
 #endif

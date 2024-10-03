@@ -1,7 +1,8 @@
-#include <ESP8266WiFi.h>
+#include <WiFi.h>
 #include <ArduinoJson.h>
 #include "MqttClient.h"
 #include "Parameter.h"
+#include "ChipId.h"
 
 extern WiFiClient network;
 
@@ -63,7 +64,7 @@ void MqttClient::publishHomeAssistantAutoconfig()
     doc["value_template"] = "{{ ((value_json.relative | float) * 100) | round(2) }}";
     doc["unit_of_measurement"] = "%";
     doc["name"] = "ESP radiation counter";
-    doc["unique_id"] = this->storage->getParameter(Parameter::MQTT_DEVICE) + "_" + String(ESP.getChipId());
+    doc["unique_id"] = this->storage->getParameter(Parameter::MQTT_DEVICE) + "_" + ChipId::getChipId();
     doc["object_id"] = "esp_radiation_counter";
 
     serializeJson(doc, json);

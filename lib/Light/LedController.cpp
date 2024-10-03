@@ -2,15 +2,19 @@
 
 LedController::LedController()
 {
-    this->lastState = false;
-
     pinMode(LED_BUILTIN, OUTPUT);
 }
 
-void LedController::run()
+void LedController::run(bool clicked)
 {
-    bool state = !this->lastState;
-    digitalWrite(LED_BUILTIN, (int) state);
+    auto now = micros();
+    if (this->lastBlink + LedController::blinkMicros > now) {
+        return;
+    }
+    digitalWrite(LED_BUILTIN, 0);
 
-    this->lastState = state;
+    if (clicked == true) {
+        this->lastBlink = now;
+        digitalWrite(LED_BUILTIN, 1);
+    }
 }

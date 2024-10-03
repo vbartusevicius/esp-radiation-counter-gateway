@@ -1,7 +1,7 @@
 #include "Display.h"
 #include <U8g2lib.h>
 
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE, D6, D5);
+U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, 22, 21, U8X8_PIN_NONE);
 
 Display::Display()
 {
@@ -67,7 +67,7 @@ void Display::run(Stats* stats)
         this->renderProgress(stats);
         this->renderNetwork(stats);
         this->renderBoolStatus("MQTT", stats->mqttConnected);
-        this->renderBoolStatus("Sensor", stats->sensorConnected);
+        this->renderBoolStatus("Sensor", true);
         this->renderUptime(stats);
     } while (u8g2.nextPage());
 }
@@ -78,9 +78,9 @@ void Display::renderProgress(Stats* stats)
     const char* value = "N/A";
     int boxWidth = 0;
 
-    if (stats->sensorConnected) {
-        boxWidth = (this->displayWidth - 2) * stats->fractionalDistance;
-        value = stats->relativeDistance.c_str();
+    if (true) {
+        boxWidth = (this->displayWidth - 2) * 15;
+        value = "85";
     }
 
     u8g2.drawFrame(0, 0, this->displayWidth, progressHeight);

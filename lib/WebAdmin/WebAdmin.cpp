@@ -190,12 +190,13 @@ void WebAdmin::updateStats(Stats* stats)
     snprintf(
         buffer,
         sizeof(buffer),
-        "Uptime: %s<br>Network: %s<br>IP address: %s<br>Signal: %sdBm<br>Dose: %s",
+        "Uptime: %s<br>Network: %s<br>IP address: %s<br>Signal: %sdBm<br>CPM: %d<br>Dose: %.2f µSv/h",
         stats->uptime.c_str(),
         stats->network.c_str(),
         stats->ipAddress.c_str(),
         stats->wifiSignal.c_str(),
-        stats->relativeDistance.c_str()
+        stats->cpm,
+        stats->dose
     );
     String data = buffer;
 

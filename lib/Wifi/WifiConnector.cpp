@@ -46,4 +46,5 @@ const char* WifiConnector::getAppName()
 void WifiConnector::resetSettings()
 {
     wm.resetSettings();
+    WiFi.disconnect(true);
 }

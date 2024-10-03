@@ -6,23 +6,21 @@ Aggregator::Aggregator(Storage* storage)
     this->storage = storage;
 }
 
-float Aggregator::aggregate(float value)
+Result Aggregator::aggregate(int value)
 {
-    const int averageWindow = 100; // atol(this->storage->getParameter(Parameter::AVG_SAMPLE_COUNT, "10").c_str());
-    
-    if (this->buffer.size() + 1 > averageWindow) {
-        this->buffer.clear();
-    }
-    if (this->buffer.size() >= averageWindow) {
-        this->buffer.erase(this->buffer.begin());
-    }
     this->buffer.push_back(value);
 
-    float data = 0.0;
-
-    for (auto &element : this->buffer) {
-        data += element;
+    if (this->buffer.size() > Aggregator::MAX_SIZE) {
+        this->buffer.erase(this->buffer.begin());
     }
 
-    return data / this->buffer.size();
+    int cpm = 0;
+    for (auto &element : this->buffer) {
+        cpm += element;
+    }
+
+    float tubeFactor = this->storage->getParameter(Parameter::TUBE_CONVERSION_FACTOR, "120").toFloat();
+    float dose = cpm / tubeFactor;
+
+    return {cpm, dose};
 }
