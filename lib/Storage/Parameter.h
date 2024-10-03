@@ -14,6 +14,7 @@ class Parameter
         static char* MQTT_DEVICE;
         static char* MQTT_TOPIC_MEASUREMENT;
         static char* TUBE_CONVERSION_FACTOR;
+        static char* DISPLAY_GRAPH_RESOLUTION;
 
         static vector<char*> REQUIRED_PARAMS;
 };

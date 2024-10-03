@@ -2,21 +2,29 @@
 #define AGGREGATOR_H
 
 #include <queue>
-#include "Storage.h"
 #include "Result.cpp"
+#include "Storage.h"
 
 using namespace std;
 
 class Aggregator
 {
     private:
-        static const int MAX_SIZE = 60;
-        vector<int> buffer;
+        static const int BUFFER_SIZE = 128; // number of cols on LCD
+        int spanPointer = 0;
         Storage* storage;
+        vector<float> minuteBufferDose;
+        vector<int> minuteBufferCpm;
+        vector<float> spanBuffer;
+        vector<float> totalBuffer;
+
+        void processTotalBuffer();
+        void processSpanBuffer(float value, int spanSize);
+        void processMinuteBuffer(Result result);
     
     public:
         Aggregator(Storage* storage);
-        Result aggregate(int value);
+        vector<float> aggregate(Result result);
 };
 
 #endif

@@ -6,21 +6,57 @@ Aggregator::Aggregator(Storage* storage)
     this->storage = storage;
 }
 
-Result Aggregator::aggregate(int value)
+vector<float> Aggregator::aggregate(Result result)
 {
-    this->buffer.push_back(value);
+    this->spanPointer++;
+    int spanSize = this->storage->getParameter(Parameter::DISPLAY_GRAPH_RESOLUTION, "600").toInt();
 
-    if (this->buffer.size() > Aggregator::MAX_SIZE) {
-        this->buffer.erase(this->buffer.begin());
+    this->processSpanBuffer(result.dose, spanSize);
+    this->processMinuteBuffer(result);
+
+    if (this->spanPointer < spanSize) {
+        return;
     }
 
-    int cpm = 0;
-    for (auto &element : this->buffer) {
-        cpm += element;
+    this->spanPointer = 0;
+    this->processTotalBuffer();
+}
+
+void Aggregator::processMinuteBuffer(Result result)
+{
+    this->minuteBufferCpm.push_back(result.cpm);
+
+    if (this->minuteBufferCpm.size() > 60) {
+        this->minuteBufferCpm.erase(this->minuteBufferCpm.begin());
     }
 
-    float tubeFactor = this->storage->getParameter(Parameter::TUBE_CONVERSION_FACTOR, "120").toFloat();
-    float dose = cpm / tubeFactor;
+    this->minuteBufferDose.push_back(result.dose);
 
-    return {cpm, dose};
+    if (this->minuteBufferDose.size() > 60) {
+        this->minuteBufferDose.erase(this->minuteBufferDose.begin());
+    }
+}
+
+void Aggregator::processSpanBuffer(float value, int spanSize)
+{
+    this->spanBuffer.push_back(value);
+
+    if (this->spanBuffer.size() > spanSize) {
+        this->spanBuffer.erase(this->spanBuffer.begin());
+    }
+}
+
+void Aggregator::processTotalBuffer()
+{
+    float data = 0.0;
+    for (auto &element : this->spanBuffer) {
+        data += element;
+    }
+    float spanDose = data / this->spanBuffer.size();
+
+    this->totalBuffer.push_back(spanDose);
+
+    if (this->totalBuffer.size() > Aggregator::BUFFER_SIZE) {
+        this->totalBuffer.erase(this->totalBuffer.begin());
+    }
 }

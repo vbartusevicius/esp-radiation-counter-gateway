@@ -11,10 +11,11 @@
 // #include "WebAdmin.h"
 // #include "MqttClient.h"
 #include "Meter.h"
-#include "Aggregator.h"
+#include "Calculator.h"
 #include "Storage.h"
 #include "Stats.h"
 #include "Display.h"
+#include "Aggregator.h"
 
 // WiFiClient network;
 Display display;
@@ -28,9 +29,10 @@ LedController* led;
 // WebAdmin* admin;
 // MqttClient* mqtt;
 Meter* meter;
-Aggregator* aggregator;
+Calculator* calculator;
 Storage* storage;
 Stats* stats;
+Aggregator* aggregator;
 
 // void resetCallback() {
 //     wifi->resetSettings();
@@ -52,6 +54,7 @@ void setup()
     meter = new Meter();
     storage = new Storage();
     stats = new Stats();
+    calculator = new Calculator(storage);
     aggregator = new Aggregator(storage);
     // logger = new Logger(&Serial, "System");
     // wifi = new WifiConnector(logger);
@@ -67,7 +70,8 @@ void setup()
 
     // taskManager.schedule(repeatMillis(500), [] { wifi->run(); });
     taskManager.schedule(repeatSeconds(1), [] {
-        auto result = aggregator->aggregate(meter->read());
+        auto result = calculator->calculate(meter->read());
+        aggregator->aggregate(result);
         stats->updateStats(
             mqttConnected,
             result.cpm,
