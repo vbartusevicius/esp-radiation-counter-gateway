@@ -9,32 +9,19 @@ Aggregator::Aggregator(Storage* storage)
 vector<float> Aggregator::aggregate(Result result)
 {
     this->spanPointer++;
-    int spanSize = this->storage->getParameter(Parameter::DISPLAY_GRAPH_RESOLUTION, "600").toInt();
+    int spanSize = this->storage->getParameter(Parameter::DISPLAY_GRAPH_RESOLUTION, "6").toInt();
+    // int spanSize = this->storage->getParameter(Parameter::DISPLAY_GRAPH_RESOLUTION, "600").toInt();
 
     this->processSpanBuffer(result.dose, spanSize);
-    this->processMinuteBuffer(result);
 
     if (this->spanPointer < spanSize) {
-        return;
+        return this->totalBuffer;
     }
 
     this->spanPointer = 0;
     this->processTotalBuffer();
-}
 
-void Aggregator::processMinuteBuffer(Result result)
-{
-    this->minuteBufferCpm.push_back(result.cpm);
-
-    if (this->minuteBufferCpm.size() > 60) {
-        this->minuteBufferCpm.erase(this->minuteBufferCpm.begin());
-    }
-
-    this->minuteBufferDose.push_back(result.dose);
-
-    if (this->minuteBufferDose.size() > 60) {
-        this->minuteBufferDose.erase(this->minuteBufferDose.begin());
-    }
+    return this->totalBuffer;
 }
 
 void Aggregator::processSpanBuffer(float value, int spanSize)

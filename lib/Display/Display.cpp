@@ -8,6 +8,7 @@ Display::Display()
     u8g2.begin();
 
     this->displayWidth = u8g2.getDisplayWidth();
+    this->displayHeight = u8g2.getDisplayHeight();
 }
 
 void Display::displayFirstStep(const char* appName)
@@ -64,40 +65,47 @@ void Display::run(Stats* stats)
 {
     u8g2.firstPage();
     do {
-        this->renderProgress(stats);
-        this->renderNetwork(stats);
-        this->renderBoolStatus("MQTT", stats->mqttConnected);
-        this->renderBoolStatus("Sensor", true);
-        this->renderUptime(stats);
+        this->renderGraph(stats);
+        // this->renderNetwork(stats);
+        // this->renderBoolStatus("MQTT", stats->mqttConnected);
+        // this->renderBoolStatus("Sensor", true);
+        // this->renderUptime(stats);
     } while (u8g2.nextPage());
 }
 
-void Display::renderProgress(Stats* stats)
+void Display::renderGraph(Stats* stats)
 {
-    const int progressHeight = 16;
-    const char* value = "N/A";
-    int boxWidth = 0;
-
-    if (true) {
-        boxWidth = (this->displayWidth - 2) * 15;
-        value = "85";
+    u8g2.setDrawColor(1);
+    u8g2.setFontMode(1);
+    float max = 0.0;
+    for (auto &element : stats->buffer) {
+        if (element > max) {
+            max = element;
+        }
     }
 
-    u8g2.drawFrame(0, 0, this->displayWidth, progressHeight);
-    u8g2.drawBox(1, 1, boxWidth, progressHeight - 2);
+    int chartHeight = this->displayHeight - this->headerHeight;
+    float pixelRatio = (float) chartHeight / max;
 
-    u8g2.setFontMode(1);
-    u8g2.setDrawColor(2);
+    for (int i = 0; i < stats->buffer.size(); i++) {
+        int lineHeight = floor(stats->buffer[i] * pixelRatio);
+        u8g2.drawVLine(
+            i + (this->displayWidth - stats->buffer.size()),
+            this->displayHeight - lineHeight,
+            lineHeight
+        );
+    }
+
     u8g2.setFont(u8g2_font_5x7_tr);
-    auto charHeight = u8g2.getAscent();
-    auto strWidth = u8g2.getStrWidth(value);
-    u8g2.drawStr(
-        (this->displayWidth - strWidth) / 2, 
-        charHeight + floor((progressHeight - charHeight) / 2) - 1, 
-        value
-    );
+    u8g2.setDrawColor(0);
 
-    this->cursorOffset = progressHeight;
+    auto maxText = String(max, 2);
+    auto maxTextWidth = u8g2.getStrWidth(maxText.c_str());
+
+    u8g2.drawBox(0, this->headerHeight, maxTextWidth + 2, u8g2.getAscent() + 2);
+    u8g2.setDrawColor(1);
+    u8g2.setFontPosTop();
+    u8g2.drawStr(1, this->headerHeight - 1, maxText.c_str());
 }
 
 void Display::renderNetwork(Stats* stats)

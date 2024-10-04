@@ -4,6 +4,7 @@
 #include <ArduinoOTA.h>
 // #include <WiFi.h>
 #include <TaskManagerIO.h>
+#include <BasicInterruptAbstraction.h>
 // #include <ExecWithParameter.h>
 
 // #include "Logger.h"
@@ -16,6 +17,7 @@
 #include "Stats.h"
 #include "Display.h"
 #include "Aggregator.h"
+#include "ClickEvent.h"
 
 // WiFiClient network;
 Display display;
@@ -33,6 +35,7 @@ Calculator* calculator;
 Storage* storage;
 Stats* stats;
 Aggregator* aggregator;
+ClickEvent* clickEvent;
 
 // void resetCallback() {
 //     wifi->resetSettings();
@@ -41,6 +44,10 @@ Aggregator* aggregator;
 //     delay(2000);
 //     ESP.restart();
 // }
+BasicArduinoInterruptAbstraction interruptAbstraction;
+void onInterrupt(uint8_t interruptNumber) {
+    clickEvent->handleInterrupt();
+}
 
 void setup()
 {
@@ -48,17 +55,21 @@ void setup()
     // ArduinoOTA.setPort(8266);
     // ArduinoOTA.begin();
 
-    while (!Serial && !Serial.available()) {
-    }
+    while (!Serial && !Serial.available()) {}
 
     meter = new Meter();
+    led = new LedController();
+    clickEvent = new ClickEvent(meter, led);
+
+    taskManager.setInterruptCallback(onInterrupt);
+    taskManager.addInterrupt(&interruptAbstraction, digitalPinToInterrupt(ClickEvent::CNT_PIN), CHANGE);
+
     storage = new Storage();
     stats = new Stats();
     calculator = new Calculator(storage);
     aggregator = new Aggregator(storage);
     // logger = new Logger(&Serial, "System");
     // wifi = new WifiConnector(logger);
-    led = new LedController();
     // mqtt = new MqttClient(storage, logger);
     // admin = new WebAdmin(storage, logger, &resetCallback);
     // meter = new Meter(logger);
@@ -71,16 +82,16 @@ void setup()
     // taskManager.schedule(repeatMillis(500), [] { wifi->run(); });
     taskManager.schedule(repeatSeconds(1), [] {
         auto result = calculator->calculate(meter->read());
-        aggregator->aggregate(result);
+        auto buffer = aggregator->aggregate(result);
         stats->updateStats(
             mqttConnected,
-            result.cpm,
-            result.dose
+            result,
+            buffer
         );
      });
 
     if (!wifiConnected) {
-        display.displayFirstStep("test");
+        // display.displayFirstStep("test");
         // display.displayFirstStep(wifi->getAppName());
         // return;
     }
@@ -88,13 +99,14 @@ void setup()
     //     display.displaySecondStep(WiFi.localIP().toString().c_str());
     //     return;
     // }
-
-    taskManager.schedule(repeatSeconds(1), [] {
-        Serial.printf("CPM: %d, uSv/h: %.2f\n", stats->cpm, stats->dose);
-     });
+    // taskManager.schedule(repeatSeconds(1), [] {
+    //     Serial.printf("CPM: %d, uSv/h: %.2f\n", stats->cpm, stats->dose);
+    //  });
     taskManager.schedule(repeatMicros(10), [] {
-        led->run(meter->clicked);
-        meter->clicked = false;
+        led->run();
+    });
+    taskManager.schedule(repeatSeconds(5), [] {
+        display.run(stats);
     });
     // taskManager.schedule(repeatMillis(500), [] { mqttConnected = mqtt->run(); });
 }

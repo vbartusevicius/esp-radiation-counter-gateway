@@ -6,19 +6,20 @@ Stats::Stats() {}
 
 void Stats::updateStats(
     bool mqttConnected,
-    int cpm,
-    float dose
+    Result result,
+    vector<float> buffer
 )
 {
     this->mqttConnected = mqttConnected;
-    this->cpm = cpm;
-    this->dose = dose;
+    this->cpm = result.cpm;
+    this->dose = result.dose;
+    this->buffer = buffer;
 
     this->ipAddress = String(WiFi.localIP().toString());
     this->network = String(WiFi.SSID());
     this->wifiSignal = String(WiFi.RSSI());
 
-    char buffer[32];
-    TimeHelper::getUptime(buffer);
-    this->uptime = String(buffer);
+    char uptimeBuf[32];
+    TimeHelper::getUptime(uptimeBuf);
+    this->uptime = String(uptimeBuf);
 }

@@ -8,6 +8,8 @@ class Display
     private:
         int cursorOffset = 0;
         int displayWidth;
+        int displayHeight;
+        int headerHeight = 16;
 
     public:
         Display();
@@ -16,7 +18,7 @@ class Display
         void displaySecondStep(const char* ipAddress);
     
     private:
-        void renderProgress(Stats* stats);
+        void renderGraph(Stats* stats);
         void renderNetwork(Stats* stats);
         void renderBoolStatus(String name, bool status);
         void renderUptime(Stats* stats);

@@ -13,14 +13,11 @@ class Aggregator
         static const int BUFFER_SIZE = 128; // number of cols on LCD
         int spanPointer = 0;
         Storage* storage;
-        vector<float> minuteBufferDose;
-        vector<int> minuteBufferCpm;
         vector<float> spanBuffer;
         vector<float> totalBuffer;
 
         void processTotalBuffer();
         void processSpanBuffer(float value, int spanSize);
-        void processMinuteBuffer(Result result);
     
     public:
         Aggregator(Storage* storage);

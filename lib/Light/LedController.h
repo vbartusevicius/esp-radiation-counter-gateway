@@ -8,10 +8,12 @@ class LedController
     private:
         unsigned long lastBlink = 0;
         unsigned const int blinkMicros = 1000;
+        bool clicked = false;
 
     public:
         LedController();
-        void run(bool clicked);
+        void run();
+        void click();
 };
 
 #endif
