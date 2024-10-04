@@ -109,14 +109,16 @@ void Display::renderRadiationMetrics(Stats* stats)
     u8g2.setFontMode(1);
     u8g2.setFont(u8g2_font_6x12_mf);
 
-    auto hMiddle = ceil(this->headerHeight - u8g2.getAscent() - u8g2.getDescent());
+    int ascent = u8g2.getAscent();
+    int descent = u8g2.getDescent();
+    int headerMiddleY = this->headerHeight / 2 + ascent / 2 - descent / 2;
 
     auto cpm = String(stats->cpm) + String(" CPM");
-    u8g2.drawStr(1, hMiddle, cpm.c_str());
+    u8g2.drawStr(1, headerMiddleY, cpm.c_str());
 
     auto dose = String(stats->dose, 2) + String(" µSv/h");
     auto doseTextWidth = u8g2.getStrWidth(dose.c_str());
-    u8g2.drawUTF8(this->displayWidth - doseTextWidth, hMiddle, dose.c_str());
+    u8g2.drawUTF8(this->displayWidth - doseTextWidth - 1, headerMiddleY, dose.c_str());
 }
 
 void Display::renderGraph(float min, float max, Stats* stats)
@@ -124,18 +126,32 @@ void Display::renderGraph(float min, float max, Stats* stats)
     u8g2.setDrawColor(1);
     u8g2.setFontMode(1);
 
+    int chartX = 0;
+    int chartY = this->headerHeight;
     int chartHeight = this->displayHeight - this->headerHeight;
-    float pixelRatio = (float) chartHeight / max;
+    int chartWidth = this->displayWidth;
+
+    float yMin = min / 2.0;
+    float yRange = max - yMin;
+    if (yRange == 0) yRange = 1;
+
+    int xStart = this->displayWidth - stats->buffer.size();
+    if (xStart < 0) xStart = 0;
 
     for (int i = 0; i < stats->buffer.size(); i++) {
-        int lineHeight = floor(stats->buffer[i] * pixelRatio);
-        u8g2.drawVLine(
-            i + (this->displayWidth - stats->buffer.size()),
-            this->displayHeight - lineHeight,
-            lineHeight
-        );
-    }
+        float scaledValue = (stats->buffer[i] - yMin) / yRange;
+        if (scaledValue < 0) scaledValue = 0;
+        if (scaledValue > 1) scaledValue = 1;
 
+        int pixelHeight = floor(scaledValue * chartHeight);
+
+        int xPos = xStart + i;
+        if (xPos >= this->displayWidth) break;
+
+        int yPos = chartY + chartHeight - pixelHeight;
+
+        u8g2.drawVLine(xPos, yPos, pixelHeight);
+    }
 }
 
 void Display::renderAxis(float min, float max, Stats* stats)
