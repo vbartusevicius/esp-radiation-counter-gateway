@@ -44,7 +44,13 @@ void Display::pageOne(Stats* stats)
 
 void Display::pageTwo(Stats* stats)
 {
+    this->cursorOffset = 0;
 
+    u8g2.firstPage();
+    do {
+        // todo: add technical stats
+        this->renderUptime(stats);
+    } while (u8g2.nextPage());
 }
 
 void Display::displayFirstStep(const char* appName)
