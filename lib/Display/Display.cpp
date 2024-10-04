@@ -44,64 +44,64 @@ void Display::pageOne(Stats* stats)
 
 void Display::pageTwo(Stats* stats)
 {
-    this->cursorOffset = 0;
-
+    int yPosition = 0;
     u8g2.firstPage();
     do {
-        // todo: add technical stats
-        this->renderUptime(stats);
+        yPosition = renderNetwork(stats, yPosition);
+        yPosition = renderUptime(stats, yPosition);
+        yPosition = renderBoolStatus("MQTT", stats->mqttConnected, yPosition);
     } while (u8g2.nextPage());
 }
 
-void Display::displayFirstStep(const char* appName)
-{
-    u8g2.firstPage();
-    do {
-        u8g2.setFont(u8g2_font_6x10_tr);
-        u8g2.drawStr(
-            0, 
-            this->cursorOffset + 14,
-            "Welcome! (1/2)"
-        );
-        u8g2.setFont(u8g2_font_5x7_tr);
+// void Display::displayFirstStep(const char* appName)
+// {
+//     u8g2.firstPage();
+//     do {
+//         u8g2.setFont(u8g2_font_6x10_tr);
+//         u8g2.drawStr(
+//             0, 
+//             this->cursorOffset + 14,
+//             "Welcome! (1/2)"
+//         );
+//         u8g2.setFont(u8g2_font_5x7_tr);
 
-        u8g2.drawStr(
-            0, 
-            this->cursorOffset + 28,
-            "Connect to AP:"
-        );
-        u8g2.drawStr(
-            0, 
-            this->cursorOffset + 38,
-            appName
-        );
-    } while (u8g2.nextPage());
-}
+//         u8g2.drawStr(
+//             0, 
+//             this->cursorOffset + 28,
+//             "Connect to AP:"
+//         );
+//         u8g2.drawStr(
+//             0, 
+//             this->cursorOffset + 38,
+//             appName
+//         );
+//     } while (u8g2.nextPage());
+// }
 
-void Display::displaySecondStep(const char* ipAddress)
-{
-    u8g2.firstPage();
-    do {
-        u8g2.setFont(u8g2_font_6x10_tr);
-        u8g2.drawStr(
-            0, 
-            this->cursorOffset + 14,
-            "Welcome! (2/2)"
-        );
-        u8g2.setFont(u8g2_font_5x7_tr);
+// void Display::displaySecondStep(const char* ipAddress)
+// {
+//     u8g2.firstPage();
+//     do {
+//         u8g2.setFont(u8g2_font_6x10_tr);
+//         u8g2.drawStr(
+//             0, 
+//             this->cursorOffset + 14,
+//             "Welcome! (2/2)"
+//         );
+//         u8g2.setFont(u8g2_font_5x7_tr);
 
-        u8g2.drawStr(
-            0, 
-            this->cursorOffset + 28,
-            "Configure device on:"
-        );
-        u8g2.drawStr(
-            0, 
-            this->cursorOffset + 38,
-            ipAddress
-        );
-    } while (u8g2.nextPage());
-}
+//         u8g2.drawStr(
+//             0, 
+//             this->cursorOffset + 28,
+//             "Configure device on:"
+//         );
+//         u8g2.drawStr(
+//             0, 
+//             this->cursorOffset + 38,
+//             ipAddress
+//         );
+//     } while (u8g2.nextPage());
+// }
 
 void Display::renderRadiationMetrics(Stats* stats)
 {
@@ -209,77 +209,94 @@ void Display::renderAxis(float min, float max, Stats* stats)
     u8g2.drawStr(1, this->displayHeight - abs(u8g2.getDescent()), textFull.c_str());
 }
 
-void Display::renderNetwork(Stats* stats)
+int Display::renderNetwork(Stats* stats, int startY)
 {
-    auto signalStrength = atoi(stats->wifiSignal.c_str());
-    // no signal
-    unsigned int signalGlyph = 57887;
-    // poor
+    int signalStrength = atoi(stats->wifiSignal);
+
+    const unsigned int NO_SIGNAL_GLYPH = 57887;
+    const unsigned int POOR_SIGNAL_GLYPH = 57888;
+    const unsigned int GOOD_SIGNAL_GLYPH = 57889;
+    const unsigned int VERY_GOOD_SIGNAL_GLYPH = 57890;
+
+    unsigned int signalGlyph = NO_SIGNAL_GLYPH;
     if (signalStrength >= -95) {
-        signalGlyph = 57888;
+        signalGlyph = POOR_SIGNAL_GLYPH;
     }
-    // good
     if (signalStrength >= -85) {
-        signalGlyph = 57889;
+        signalGlyph = GOOD_SIGNAL_GLYPH;
     }
-    // very good
     if (signalStrength >= -75) {
-        signalGlyph = 57890;
+        signalGlyph = VERY_GOOD_SIGNAL_GLYPH;
+    }
+    if (signalStrength == 0) {
+        signalGlyph = NO_SIGNAL_GLYPH;
     }
 
     u8g2.setFont(u8g2_font_siji_t_6x10);
+    int glyphHeight = u8g2.getAscent() - u8g2.getDescent();
+
+    int yPosition = startY;
+
     u8g2.drawGlyph(
         this->displayWidth - 10,
-        this->cursorOffset + 14,
+        yPosition + glyphHeight,
         signalGlyph
     );
 
-    u8g2.setFont(u8g2_font_5x7_tr);
-    u8g2.drawStr(
-        0, 
-        this->cursorOffset + 7, 
-        ("SSID: " + stats->network).c_str()
-    );
-    u8g2.drawStr(
-        0, 
-        this->cursorOffset + 14 + 1, 
-        ("IP: " + stats->ipAddress).c_str()
-    );
-    u8g2.drawHLine(0, this->cursorOffset + 16, this->displayWidth);
+    char ipLine[32];
+    snprintf(ipLine, sizeof(ipLine), "IP: %s", stats->ipAddress);
 
-    this->cursorOffset += 17;
+    char ssidLine[32];
+    snprintf(ssidLine, sizeof(ssidLine), "SSID: %s", stats->network);
+
+    int lineHeight = u8g2.getAscent() - u8g2.getDescent() + 2;
+
+    yPosition += lineHeight;
+    u8g2.setFont(u8g2_font_6x12_mf);
+    u8g2.drawStr(0, yPosition, ipLine);
+
+    yPosition += lineHeight;
+    u8g2.setFont(u8g2_font_5x7_tr);
+    u8g2.drawStr(0, yPosition, ssidLine);
+
+    yPosition += 2;
+    u8g2.drawHLine(0, yPosition, this->displayWidth);
+
+    return yPosition;
 }
 
-void Display::renderBoolStatus(String name, bool status)
+int Display::renderUptime(Stats* stats, int startY)
 {
     u8g2.setFont(u8g2_font_5x7_tr);
-    u8g2.drawStr(0, this->cursorOffset + 8, (name + ":").c_str());
+    int lineHeight = u8g2.getAscent() - u8g2.getDescent() + 2;
 
-    const char* statusGlyph = "[ ]";
-    if (status) {
-        statusGlyph = "[+]";
-    }
+    int yPosition = startY + lineHeight;
+    u8g2.drawStr(0, yPosition, "Uptime:");
 
-    auto glyphLength = u8g2.getStrWidth(statusGlyph);
+    u8g2.drawStr(49, yPosition, stats->uptime);
+
+    return yPosition;
+}
+
+int Display::renderBoolStatus(const char* name, bool status, int startY)
+{
+    u8g2.setFont(u8g2_font_5x7_tr);
+    int lineHeight = u8g2.getAscent() - u8g2.getDescent() + 2;
+
+    char label[20];
+    snprintf(label, sizeof(label), "%s:", name);
+
+    int yPosition = startY + lineHeight;
+
+    u8g2.drawStr(0, yPosition, label);
+
+    const char* statusGlyph = status ? "[+]" : "[ ]";
+    int glyphWidth = u8g2.getStrWidth(statusGlyph);
     u8g2.drawStr(
-        (int) (this->displayWidth / 2) - glyphLength,
-        this->cursorOffset + 8,
+        (this->displayWidth / 2) - glyphWidth,
+        yPosition,
         statusGlyph
     );
 
-    this->cursorOffset += 8;
-}
-
-void Display::renderUptime(Stats* stats)
-{
-    u8g2.setFont(u8g2_font_5x7_tr);
-    u8g2.drawStr(0, this->cursorOffset + 8, "Uptime:");
-
-    u8g2.drawStr(
-        49,
-        this->cursorOffset + 8,
-        stats->uptime.c_str()
-    );
-
-    this->cursorOffset += 8;
+    return yPosition;
 }

@@ -16,13 +16,13 @@ class Stats
         Storage* storage;
     
     public:
-        String wifiSignal = "";
-        String ipAddress = "";
-        String network = "";
-        String uptime = "";
-        int spanSize = 0;
-        
+        char wifiSignal[16];
+        char ipAddress[16];
+        char network[32];
+        char uptime[16];
         bool mqttConnected = false;
+
+        int spanSize = 0;
         int cpm = 0;
         float dose = 0.0;
         vector<float> buffer;

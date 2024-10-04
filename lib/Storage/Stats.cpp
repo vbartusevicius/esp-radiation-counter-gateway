@@ -19,11 +19,12 @@ void Stats::updateStats(
     this->buffer = buffer;
     this->spanSize = this->storage->getParameter(Parameter::DISPLAY_GRAPH_RESOLUTION, "600").toInt();
 
-    this->ipAddress = String(WiFi.localIP().toString());
-    this->network = String(WiFi.SSID());
-    this->wifiSignal = String(WiFi.RSSI());
+    int32_t rssi = WiFi.RSSI();
+    snprintf(this->wifiSignal, sizeof(this->wifiSignal), "%d", rssi);
 
-    char uptimeBuf[32];
-    TimeHelper::getUptime(uptimeBuf);
-    this->uptime = String(uptimeBuf);
+    snprintf(this->ipAddress, sizeof(this->ipAddress), "%s", WiFi.localIP().toString().c_str());
+
+    snprintf(this->network, sizeof(this->network), "%s", WiFi.SSID().c_str());
+
+    TimeHelper::getUptime(this->uptime);
 }

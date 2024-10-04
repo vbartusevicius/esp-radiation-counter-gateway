@@ -108,14 +108,11 @@ void setup()
     //     display.displaySecondStep(WiFi.localIP().toString().c_str());
     //     return;
     // }
-    // taskManager.schedule(repeatSeconds(1), [] {
-    //     Serial.printf("CPM: %d, uSv/h: %.2f\n", stats->cpm, stats->dose);
-    //  });
     taskManager.schedule(repeatMicros(10), [] {
         led->run();
     });
     taskManager.schedule(repeatSeconds(1), [] {
-        display.run(stats, buttonClickEvent->counter % 2);
+        display.run(stats, buttonClickEvent->counter % 2); // number of pages
     });
     // taskManager.schedule(repeatMillis(500), [] { mqttConnected = mqtt->run(); });
 }

@@ -6,7 +6,6 @@
 class Display
 {
     private:
-        int cursorOffset = 0;
         int displayWidth;
         int displayHeight;
         int headerHeight = 16;
@@ -14,8 +13,8 @@ class Display
     public:
         Display();
         void run(Stats* stats, int page);
-        void displayFirstStep(const char* appName);
-        void displaySecondStep(const char* ipAddress);
+        // void displayFirstStep(const char* appName);
+        // void displaySecondStep(const char* ipAddress);
     
     private:
         void pageOne(Stats* stats);
@@ -25,9 +24,9 @@ class Display
         
         void pageTwo(Stats* stats);
 
-        void renderNetwork(Stats* stats);
-        void renderBoolStatus(String name, bool status);
-        void renderUptime(Stats* stats);
+        int renderNetwork(Stats* stats, int startY);
+        int renderBoolStatus(const char* name, bool status, int startY);
+        int renderUptime(Stats* stats, int startY);
 };
 
 #endif
