@@ -11,6 +11,42 @@ Display::Display()
     this->displayHeight = u8g2.getDisplayHeight();
 }
 
+void Display::run(Stats* stats, int page)
+{
+    if (page == 0) {
+        return this->pageOne(stats);
+    }
+    if (page == 1) {
+        return this->pageTwo(stats);
+    }
+}
+
+void Display::pageOne(Stats* stats)
+{
+    float max = 0.0;
+    float min = 1000;
+    for (auto &element : stats->buffer) {
+        if (element > max) {
+            max = element;
+        }
+        if (element < min) {
+            min = element;
+        }
+    }
+
+    u8g2.firstPage();
+    do {
+        this->renderRadiationMetrics(stats);
+        this->renderGraph(min, max, stats);
+        this->renderAxis(min, max, stats);
+    } while (u8g2.nextPage());
+}
+
+void Display::pageTwo(Stats* stats)
+{
+
+}
+
 void Display::displayFirstStep(const char* appName)
 {
     u8g2.firstPage();
@@ -61,28 +97,20 @@ void Display::displaySecondStep(const char* ipAddress)
     } while (u8g2.nextPage());
 }
 
-void Display::run(Stats* stats)
+void Display::renderRadiationMetrics(Stats* stats)
 {
-    float max = 0.0;
-    float min = 1000;
-    for (auto &element : stats->buffer) {
-        if (element > max) {
-            max = element;
-        }
-        if (element < min) {
-            min = element;
-        }
-    }
+    u8g2.setDrawColor(1);
+    u8g2.setFontMode(1);
+    u8g2.setFont(u8g2_font_6x12_mf);
 
-    u8g2.firstPage();
-    do {
-        this->renderGraph(min, max, stats);
-        this->renderAxis(min, max, stats);
-        // this->renderNetwork(stats);
-        // this->renderBoolStatus("MQTT", stats->mqttConnected);
-        // this->renderBoolStatus("Sensor", true);
-        // this->renderUptime(stats);
-    } while (u8g2.nextPage());
+    auto hMiddle = ceil(this->headerHeight - u8g2.getAscent() - u8g2.getDescent());
+
+    auto cpm = String(stats->cpm) + String(" CPM");
+    u8g2.drawStr(1, hMiddle, cpm.c_str());
+
+    auto dose = String(stats->dose, 2) + String(" µSv/h");
+    auto doseTextWidth = u8g2.getStrWidth(dose.c_str());
+    u8g2.drawUTF8(this->displayWidth - doseTextWidth, hMiddle, dose.c_str());
 }
 
 void Display::renderGraph(float min, float max, Stats* stats)

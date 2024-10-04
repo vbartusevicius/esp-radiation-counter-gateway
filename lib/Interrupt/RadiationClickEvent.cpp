@@ -1,6 +1,6 @@
-#include "ClickEvent.h"
+#include "RadiationClickEvent.h"
 
-ClickEvent::ClickEvent(Meter* meter, LedController* led)
+RadiationClickEvent::RadiationClickEvent(Meter* meter, LedController* led)
 {
     this->meter = meter;
     this->led = led;
@@ -8,7 +8,7 @@ ClickEvent::ClickEvent(Meter* meter, LedController* led)
     pinMode(this->CNT_PIN, INPUT);
 }
 
-void ClickEvent::handleInterrupt()
+void RadiationClickEvent::handleInterrupt()
 {
     int pinState = digitalRead(this->CNT_PIN);
 

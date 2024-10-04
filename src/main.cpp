@@ -17,7 +17,8 @@
 #include "Stats.h"
 #include "Display.h"
 #include "Aggregator.h"
-#include "ClickEvent.h"
+#include "RadiationClickEvent.h"
+#include "ButtonClickEvent.h"
 
 // WiFiClient network;
 Display display;
@@ -35,7 +36,8 @@ Calculator* calculator;
 Storage* storage;
 Stats* stats;
 Aggregator* aggregator;
-ClickEvent* clickEvent;
+RadiationClickEvent* radiationClickEvent;
+ButtonClickEvent* buttonClickEvent;
 
 // void resetCallback() {
 //     wifi->resetSettings();
@@ -46,7 +48,12 @@ ClickEvent* clickEvent;
 // }
 BasicArduinoInterruptAbstraction interruptAbstraction;
 void onInterrupt(uint8_t interruptNumber) {
-    clickEvent->handleInterrupt();
+    if (interruptNumber == digitalPinToInterrupt(RadiationClickEvent::CNT_PIN)) {
+        radiationClickEvent->handleInterrupt();
+    }
+    if (interruptNumber == 255) {
+        buttonClickEvent->handleInterrupt();
+    }
 }
 
 void setup()
@@ -59,10 +66,12 @@ void setup()
 
     meter = new Meter();
     led = new LedController();
-    clickEvent = new ClickEvent(meter, led);
+    radiationClickEvent = new RadiationClickEvent(meter, led);
+    buttonClickEvent = new ButtonClickEvent();
 
     taskManager.setInterruptCallback(onInterrupt);
-    taskManager.addInterrupt(&interruptAbstraction, digitalPinToInterrupt(ClickEvent::CNT_PIN), CHANGE);
+    taskManager.addInterrupt(&interruptAbstraction, digitalPinToInterrupt(RadiationClickEvent::CNT_PIN), CHANGE);
+    taskManager.addInterrupt(&interruptAbstraction, digitalPinToInterrupt(ButtonClickEvent::BTN_PIN), CHANGE);
 
     storage = new Storage();
     stats = new Stats(storage);
@@ -105,8 +114,8 @@ void setup()
     taskManager.schedule(repeatMicros(10), [] {
         led->run();
     });
-    taskManager.schedule(repeatSeconds(2), [] {
-        display.run(stats);
+    taskManager.schedule(repeatSeconds(1), [] {
+        display.run(stats, buttonClickEvent->counter % 2);
     });
     // taskManager.schedule(repeatMillis(500), [] { mqttConnected = mqtt->run(); });
 }
