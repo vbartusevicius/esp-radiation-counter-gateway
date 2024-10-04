@@ -18,7 +18,9 @@ class Display
         void displaySecondStep(const char* ipAddress);
     
     private:
-        void renderGraph(Stats* stats);
+        void renderGraph(float min, float max, Stats* stats);
+        void renderAxis(float min, float max, Stats* stats);
+        
         void renderNetwork(Stats* stats);
         void renderBoolStatus(String name, bool status);
         void renderUptime(Stats* stats);

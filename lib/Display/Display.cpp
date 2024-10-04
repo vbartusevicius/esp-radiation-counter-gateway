@@ -63,9 +63,21 @@ void Display::displaySecondStep(const char* ipAddress)
 
 void Display::run(Stats* stats)
 {
+    float max = 0.0;
+    float min = 1000;
+    for (auto &element : stats->buffer) {
+        if (element > max) {
+            max = element;
+        }
+        if (element < min) {
+            min = element;
+        }
+    }
+
     u8g2.firstPage();
     do {
-        this->renderGraph(stats);
+        this->renderGraph(min, max, stats);
+        this->renderAxis(min, max, stats);
         // this->renderNetwork(stats);
         // this->renderBoolStatus("MQTT", stats->mqttConnected);
         // this->renderBoolStatus("Sensor", true);
@@ -73,16 +85,10 @@ void Display::run(Stats* stats)
     } while (u8g2.nextPage());
 }
 
-void Display::renderGraph(Stats* stats)
+void Display::renderGraph(float min, float max, Stats* stats)
 {
     u8g2.setDrawColor(1);
     u8g2.setFontMode(1);
-    float max = 0.0;
-    for (auto &element : stats->buffer) {
-        if (element > max) {
-            max = element;
-        }
-    }
 
     int chartHeight = this->displayHeight - this->headerHeight;
     float pixelRatio = (float) chartHeight / max;
@@ -96,16 +102,61 @@ void Display::renderGraph(Stats* stats)
         );
     }
 
+}
+
+void Display::renderAxis(float min, float max, Stats* stats)
+{
+    // Y axis
+    
+    for (int i = 0; i < this->displayWidth; i++) {
+        if (i % 4 == 0) {
+            u8g2.drawPixel(i, this->headerHeight);
+        }
+    }
+
     u8g2.setFont(u8g2_font_5x7_tr);
     u8g2.setDrawColor(0);
 
     auto maxText = String(max, 2);
     auto maxTextWidth = u8g2.getStrWidth(maxText.c_str());
 
-    u8g2.drawBox(0, this->headerHeight, maxTextWidth + 2, u8g2.getAscent() + 2);
+    u8g2.drawBox(0, this->headerHeight + 1, maxTextWidth + 1, u8g2.getAscent() + 4);
     u8g2.setDrawColor(1);
-    u8g2.setFontPosTop();
-    u8g2.drawStr(1, this->headerHeight - 1, maxText.c_str());
+    u8g2.drawStr(0, this->headerHeight + u8g2.getAscent() + 3, maxText.c_str());
+
+    // X axis
+
+    String duration = "";
+    float span = 0.0;
+    float maxSpanInSeconds = (stats->spanSize * this->displayWidth) * 1.0;
+    if ((maxSpanInSeconds / 60) < 60) {
+        duration = "min";
+        span = maxSpanInSeconds / 60;
+    } else if ((maxSpanInSeconds / (60 * 60)) < 24) {
+        duration = "h";
+        span = maxSpanInSeconds / (60 * 60);
+    } else {
+        duration = "d";
+        span = maxSpanInSeconds / (60 * 60 * 24);
+    }
+
+    u8g2.setDrawColor(2);
+    auto textZero = String("-0") + duration;
+    auto textZeroWidth = u8g2.getStrWidth(textZero.c_str());
+    u8g2.drawStr(this->displayWidth - textZeroWidth - 1, this->displayHeight - abs(u8g2.getDescent()), textZero.c_str());
+
+    for (int i = this->headerHeight + 1; i < this->displayHeight - u8g2.getAscent() - 2; i++) {
+        if (i % 4 == 0) {
+            u8g2.drawPixel(floor(this->displayWidth / 2), i);
+        }
+    }
+
+    auto textHalf = String("-") + String(span / 2, 0) + duration;
+    auto textHalfWidth = u8g2.getStrWidth(textHalf.c_str());
+    u8g2.drawStr(floor((this->displayWidth - textHalfWidth) / 2), this->displayHeight - abs(u8g2.getDescent()), textHalf.c_str());
+
+    auto textFull = String("-") + String(span, 0) + duration;
+    u8g2.drawStr(1, this->displayHeight - abs(u8g2.getDescent()), textFull.c_str());
 }
 
 void Display::renderNetwork(Stats* stats)

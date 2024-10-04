@@ -65,7 +65,7 @@ void setup()
     taskManager.addInterrupt(&interruptAbstraction, digitalPinToInterrupt(ClickEvent::CNT_PIN), CHANGE);
 
     storage = new Storage();
-    stats = new Stats();
+    stats = new Stats(storage);
     calculator = new Calculator(storage);
     aggregator = new Aggregator(storage);
     // logger = new Logger(&Serial, "System");
@@ -105,7 +105,7 @@ void setup()
     taskManager.schedule(repeatMicros(10), [] {
         led->run();
     });
-    taskManager.schedule(repeatSeconds(5), [] {
+    taskManager.schedule(repeatSeconds(2), [] {
         display.run(stats);
     });
     // taskManager.schedule(repeatMillis(500), [] { mqttConnected = mqtt->run(); });
