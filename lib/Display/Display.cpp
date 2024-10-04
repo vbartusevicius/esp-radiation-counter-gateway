@@ -121,7 +121,7 @@ void Display::renderRadiationMetrics(Stats* stats)
     u8g2.drawStr(1, headerMiddleY, cpm.c_str());
 
     auto dose = String(stats->dose, 2) + String(" µSv/h");
-    auto doseTextWidth = u8g2.getStrWidth(dose.c_str());
+    auto doseTextWidth = u8g2.getUTF8Width(dose.c_str());
     u8g2.drawUTF8(this->displayWidth - doseTextWidth - 1, headerMiddleY, dose.c_str());
 }
 
