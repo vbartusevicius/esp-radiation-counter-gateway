@@ -23,8 +23,12 @@ void Display::run(Stats* stats, int page)
 
 void Display::pageOne(Stats* stats)
 {
-    float max = 0.0;
-    float min = 1000;
+    if (stats->buffer.size() == 0) {
+        return;
+    }
+
+    float max = stats->buffer[0];
+    float min = stats->buffer[0];
     for (auto &element : stats->buffer) {
         if (element > max) {
             max = element;
@@ -167,15 +171,51 @@ void Display::renderAxis(float min, float max, Stats* stats)
     u8g2.setFont(u8g2_font_5x7_tr);
     u8g2.setDrawColor(0);
 
-    auto maxText = String(max, 2);
-    auto maxTextWidth = u8g2.getStrWidth(maxText.c_str());
+    char maxText[10];
+    dtostrf(max, 4, 2, maxText);
+    int maxTextWidth = u8g2.getStrWidth(maxText);
 
-    u8g2.drawBox(0, this->headerHeight + 1, maxTextWidth + 1, u8g2.getAscent() + 4);
+    char minText[10];
+    dtostrf(min, 4, 2, minText);
+    int minTextWidth = u8g2.getStrWidth(minText);
+
+    const char* maxGlyph = "▲";
+    const char* minGlyph = "▼";
+
+    u8g2.setFont(u8g2_font_unifont_t_symbols);
+    int glyphWidth = u8g2.getUTF8Width(maxGlyph);
+
+    u8g2.setFont(u8g2_font_5x7_tr);
+    int textX = 0;
+    int textY = this->headerHeight + u8g2.getAscent() + 3;
+    int glyphX = textX + maxTextWidth + 2;
+    int glyphY = textY + 3;
+
+    int boxWidth = maxTextWidth + glyphWidth + 1;
+    int boxHeight = u8g2.getAscent() + 2;
+
+    u8g2.drawBox(textX, this->headerHeight + 1, boxWidth + 2, boxHeight * 2 + 4);
+
     u8g2.setDrawColor(1);
-    u8g2.drawStr(0, this->headerHeight + u8g2.getAscent() + 3, maxText.c_str());
+    u8g2.drawStr(textX, textY, maxText);
+    u8g2.setFont(u8g2_font_unifont_t_symbols);
+    u8g2.drawUTF8(glyphX, glyphY, maxGlyph);
+
+    u8g2.setFont(u8g2_font_5x7_tr);
+
+    int minTextY = textY + boxHeight + 2;
+    glyphY = minTextY + 3;
+
+    boxWidth = minTextWidth + glyphWidth + 3;
+
+    u8g2.setDrawColor(1);
+    u8g2.drawStr(textX, minTextY, minText);
+    u8g2.setFont(u8g2_font_unifont_t_symbols);
+    u8g2.drawUTF8(glyphX, glyphY, minGlyph);
 
     // X axis
 
+    u8g2.setFont(u8g2_font_5x7_tr);
     String duration = "";
     float span = 0.0;
     float maxSpanInSeconds = (stats->spanSize * this->displayWidth) * 1.0;
