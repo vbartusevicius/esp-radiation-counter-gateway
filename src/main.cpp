@@ -1,15 +1,14 @@
-#include "WifiConnector.h"
-
 #include <Arduino.h>
-// #include <ArduinoOTA.h>
+#include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>
 #include <TaskManagerIO.h>
 #include <BasicInterruptAbstraction.h>
 
+#include "WifiConnector.h"
 #include "Logger.h"
 #include "LedController.h"
 #include "WebAdmin.h"
-// #include "MqttClient.h"
+#include "MqttClient.h"
 #include "Meter.h"
 #include "Calculator.h"
 #include "Storage.h"
@@ -19,7 +18,7 @@
 #include "RadiationClickEvent.h"
 #include "ButtonClickEvent.h"
 
-// WiFiClient network;
+WiFiClient network;
 Display display;
 
 bool mqttConnected = false;
@@ -29,7 +28,7 @@ Logger* logger;
 WifiConnector* wifi;
 LedController* led;
 WebAdmin* admin;
-// MqttClient* mqtt;
+MqttClient* mqtt;
 Meter* meter;
 Calculator* calculator;
 Storage* storage;
@@ -60,10 +59,11 @@ void onInterrupt(uint8_t interruptNumber) {
 void setup()
 {
     Serial.begin(9600);
-    // ArduinoOTA.setPort(8266);
-    // ArduinoOTA.begin();
+    ArduinoOTA.setPort(8266);
+    ArduinoOTA.begin();
 
     while (!Serial && !Serial.available()) {}
+
 
     logger = new Logger(&Serial, "System");
     meter = new Meter();
@@ -80,12 +80,12 @@ void setup()
     calculator = new Calculator(storage);
     aggregator = new Aggregator(storage);
     wifi = new WifiConnector(logger);
-    // mqtt = new MqttClient(storage, logger);
+    mqtt = new MqttClient(storage, logger);
     admin = new WebAdmin(storage, logger, &resetCallback);
 
     wifiConnected = wifi->begin();
     admin->begin();
-    // mqtt->begin();
+    mqtt->begin();
 
     taskManager.schedule(repeatMillis(500), [] { wifi->run(); });
     taskManager.schedule(repeatSeconds(1), [] {
@@ -97,7 +97,7 @@ void setup()
             buffer
         );
      });
-    taskManager.schedule(repeatSeconds(2), [] { admin->run(stats); });
+    taskManager.schedule(repeatSeconds(1), [] { admin->run(stats); });
 
     if (!wifiConnected) {
         display.configWizardFirstStep(wifi->getAppName());
@@ -114,11 +114,12 @@ void setup()
         int numberOfPages = 2;
         display.run(stats, buttonClickEvent->counter % numberOfPages);
     });
-    // taskManager.schedule(repeatMillis(500), [] { mqttConnected = mqtt->run(); });
+    taskManager.schedule(repeatMillis(1500), [] { mqttConnected = mqtt->run(); });
+    taskManager.schedule(repeatSeconds(30), [] { mqtt->sendMetrics(stats->cpm, stats->dose); });
 }
 
 void loop()
 {
-    // ArduinoOTA.handle();
+    ArduinoOTA.handle();
     taskManager.runLoop();
 }

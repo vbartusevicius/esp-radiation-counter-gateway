@@ -12,13 +12,14 @@ class MqttClient
         Logger* logger;
         MQTTClient client;
         unsigned long lastReconnectAttempt;
+        unsigned const int reconnectPause = 10000;
 
     public:
         MqttClient(Storage* storage, Logger* logger);
         void begin();
         bool connect();
         bool run();
-        void sendDistance(float relative, float absolute, float measured);
+        void sendMetrics(int cpm, float dose);
 
     private:
         void publishHomeAssistantAutoconfig();
