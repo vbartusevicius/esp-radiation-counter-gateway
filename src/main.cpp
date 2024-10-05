@@ -1,4 +1,4 @@
-// #include "WifiConnector.h"
+#include "WifiConnector.h"
 
 #include <Arduino.h>
 // #include <ArduinoOTA.h>
@@ -27,7 +27,7 @@ bool mqttConnected = false;
 bool wifiConnected = false;
 
 Logger* logger;
-// WifiConnector* wifi;
+WifiConnector* wifi;
 LedController* led;
 // WebAdmin* admin;
 // MqttClient* mqtt;
@@ -78,16 +78,16 @@ void setup()
     stats = new Stats(storage);
     calculator = new Calculator(storage);
     aggregator = new Aggregator(storage);
-    // wifi = new WifiConnector(logger);
+    wifi = new WifiConnector(logger);
     // mqtt = new MqttClient(storage, logger);
     // admin = new WebAdmin(storage, logger, &resetCallback);
     // meter = new Meter(logger);
 
-    // wifiConnected = wifi->begin();
+    wifiConnected = wifi->begin();
     // admin->begin();
     // mqtt->begin();
 
-    // taskManager.schedule(repeatMillis(500), [] { wifi->run(); });
+    taskManager.schedule(repeatMillis(500), [] { wifi->run(); });
     taskManager.schedule(repeatSeconds(1), [] {
         auto result = calculator->calculate(meter->read());
         auto buffer = aggregator->aggregate(result);
