@@ -9,7 +9,7 @@
 
 #include "Logger.h"
 #include "LedController.h"
-// #include "WebAdmin.h"
+#include "WebAdmin.h"
 // #include "MqttClient.h"
 #include "Meter.h"
 #include "Calculator.h"
@@ -29,7 +29,7 @@ bool wifiConnected = false;
 Logger* logger;
 WifiConnector* wifi;
 LedController* led;
-// WebAdmin* admin;
+WebAdmin* admin;
 // MqttClient* mqtt;
 Meter* meter;
 Calculator* calculator;
@@ -39,13 +39,15 @@ Aggregator* aggregator;
 RadiationClickEvent* radiationClickEvent;
 ButtonClickEvent* buttonClickEvent;
 
-// void resetCallback() {
-//     wifi->resetSettings();
-//     // storage->reset();
+void resetCallback() {
+    wifi->resetSettings();
+    storage->reset();
+    ESP.eraseConfig();
 
-//     delay(2000);
-//     ESP.restart();
-// }
+    delay(2000);
+    ESP.restart();
+}
+
 BasicArduinoInterruptAbstraction interruptAbstraction;
 void onInterrupt(uint8_t interruptNumber) {
     if (interruptNumber == digitalPinToInterrupt(RadiationClickEvent::CNT_PIN)) {
@@ -80,11 +82,10 @@ void setup()
     aggregator = new Aggregator(storage);
     wifi = new WifiConnector(logger);
     // mqtt = new MqttClient(storage, logger);
-    // admin = new WebAdmin(storage, logger, &resetCallback);
-    // meter = new Meter(logger);
+    admin = new WebAdmin(storage, logger, &resetCallback);
 
     wifiConnected = wifi->begin();
-    // admin->begin();
+    admin->begin();
     // mqtt->begin();
 
     taskManager.schedule(repeatMillis(500), [] { wifi->run(); });
@@ -97,6 +98,7 @@ void setup()
             buffer
         );
      });
+    taskManager.schedule(repeatSeconds(1), [] { admin->run(stats); });
 
     if (!wifiConnected) {
         // display.displayFirstStep("test");

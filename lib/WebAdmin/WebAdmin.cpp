@@ -17,7 +17,21 @@ void WebAdmin::begin()
 {
     String labelStyle = "width: 100%; text-align: left; font-weight: 500;";
 
-    ESPUI.addControl(ControlType::Separator, "Sensor settings");
+    ESPUI.addControl(ControlType::Separator, "Device settings");
+    this->addControl(
+        ControlType::Text, 
+        "Tube conversion factor (CPM/uSv/h)", 
+        this->storage->getParameter(Parameter::TUBE_CONVERSION_FACTOR, "120"),
+        Control::noParent,
+        Parameter::TUBE_CONVERSION_FACTOR
+    );
+    this->addControl(
+        ControlType::Text, 
+        "Single graph bar seconds", 
+        this->storage->getParameter(Parameter::DISPLAY_GRAPH_RESOLUTION, "600"),
+        Control::noParent,
+        Parameter::DISPLAY_GRAPH_RESOLUTION
+    );
 
 
     ESPUI.addControl(ControlType::Separator, "MQTT settings");
@@ -191,10 +205,10 @@ void WebAdmin::updateStats(Stats* stats)
         buffer,
         sizeof(buffer),
         "Uptime: %s<br>Network: %s<br>IP address: %s<br>Signal: %sdBm<br>CPM: %d<br>Dose: %.2f µSv/h",
-        stats->uptime.c_str(),
-        stats->network.c_str(),
-        stats->ipAddress.c_str(),
-        stats->wifiSignal.c_str(),
+        stats->uptime,
+        stats->network,
+        stats->ipAddress,
+        stats->wifiSignal,
         stats->cpm,
         stats->dose
     );
