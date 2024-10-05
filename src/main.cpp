@@ -2,12 +2,12 @@
 
 #include <Arduino.h>
 // #include <ArduinoOTA.h>
-// #include <WiFi.h>
+// #include <ESP8266WiFi.h>
 #include <TaskManagerIO.h>
 #include <BasicInterruptAbstraction.h>
 // #include <ExecWithParameter.h>
 
-// #include "Logger.h"
+#include "Logger.h"
 #include "LedController.h"
 // #include "WebAdmin.h"
 // #include "MqttClient.h"
@@ -26,7 +26,7 @@ Display display;
 bool mqttConnected = false;
 bool wifiConnected = false;
 
-// Logger* logger;
+Logger* logger;
 // WifiConnector* wifi;
 LedController* led;
 // WebAdmin* admin;
@@ -64,7 +64,7 @@ void setup()
 
     while (!Serial && !Serial.available()) {}
 
-    // logger = new Logger(&Serial, "System");
+    logger = new Logger(&Serial, "System");
     meter = new Meter();
     led = new LedController();
     radiationClickEvent = new RadiationClickEvent(meter, led);
