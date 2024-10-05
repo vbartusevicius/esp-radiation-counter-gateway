@@ -6,8 +6,9 @@
 class LedController
 {
     private:
+        unsigned static const LED_ID = LED_BUILTIN;
         unsigned long lastBlink = 0;
-        unsigned const int blinkMicros = 1000;
+        unsigned const long blinkDuration = 50;
         bool clicked = false;
 
     public:

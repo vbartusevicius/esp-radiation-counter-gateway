@@ -3,11 +3,7 @@
 
 Storage::Storage()
 {
-}
-
-void Storage::begin()
-{
-    prefs.begin("esp_radiation_counter");
+    prefs.begin("esp_rad_cnt");
 }
 
 void Storage::saveParameter(char* name, String& value)

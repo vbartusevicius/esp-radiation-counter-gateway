@@ -8,7 +8,7 @@
 class RadiationClickEvent
 {
     public:
-        static constexpr int CNT_PIN = 4;
+        static constexpr int CNT_PIN = D2;
 
         RadiationClickEvent(Meter* meter, LedController* led);
         void handleInterrupt();

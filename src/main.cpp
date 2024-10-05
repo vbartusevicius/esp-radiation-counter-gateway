@@ -1,7 +1,7 @@
 // #include "WifiConnector.h"
 
 #include <Arduino.h>
-#include <ArduinoOTA.h>
+// #include <ArduinoOTA.h>
 // #include <WiFi.h>
 #include <TaskManagerIO.h>
 #include <BasicInterruptAbstraction.h>
@@ -64,6 +64,7 @@ void setup()
 
     while (!Serial && !Serial.available()) {}
 
+    // logger = new Logger(&Serial, "System");
     meter = new Meter();
     led = new LedController();
     radiationClickEvent = new RadiationClickEvent(meter, led);
@@ -77,14 +78,12 @@ void setup()
     stats = new Stats(storage);
     calculator = new Calculator(storage);
     aggregator = new Aggregator(storage);
-    // logger = new Logger(&Serial, "System");
     // wifi = new WifiConnector(logger);
     // mqtt = new MqttClient(storage, logger);
     // admin = new WebAdmin(storage, logger, &resetCallback);
     // meter = new Meter(logger);
 
     // wifiConnected = wifi->begin();
-    // storage->begin();
     // admin->begin();
     // mqtt->begin();
 
@@ -108,7 +107,7 @@ void setup()
     //     display.displaySecondStep(WiFi.localIP().toString().c_str());
     //     return;
     // }
-    taskManager.schedule(repeatMicros(10), [] {
+    taskManager.schedule(repeatMicros(100), [] {
         led->run();
     });
     taskManager.schedule(repeatSeconds(1), [] {

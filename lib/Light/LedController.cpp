@@ -2,7 +2,7 @@
 
 LedController::LedController()
 {
-    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(LED_ID, OUTPUT);
 }
 
 void LedController::click()
@@ -12,15 +12,17 @@ void LedController::click()
 
 void LedController::run()
 {
-    auto now = micros();
-    if (this->lastBlink + LedController::blinkMicros > now) {
+    unsigned long now = millis();
+
+    if ((this->lastBlink + LedController::blinkDuration) > now) {
         return;
     }
-    digitalWrite(LED_BUILTIN, 0);
+
+    digitalWrite(LED_ID, 1);
 
     if (this->clicked == true) {
         this->lastBlink = now;
-        digitalWrite(LED_BUILTIN, 1);
+        digitalWrite(LED_ID, 0);
         this->clicked = false;
     }
 }

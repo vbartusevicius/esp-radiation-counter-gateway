@@ -2,10 +2,8 @@
 
 String ChipId::getChipId()
 {
-    uint64_t chipId = ESP.getEfuseMac();
-    
-    uint32_t lowerChipId = (uint32_t)(chipId);
-    String chipIdString = String(lowerChipId, HEX);
+    uint32_t chipId = ESP.getChipId();
+    String chipIdString = String(chipId, HEX);
     
     chipIdString.toUpperCase();
     return chipIdString;

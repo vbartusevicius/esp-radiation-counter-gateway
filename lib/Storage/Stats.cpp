@@ -1,7 +1,7 @@
 #include "Stats.h"
 #include "TimeHelper.h"
 #include "Parameter.h"
-#include <WiFi.h>
+#include <ESP8266WiFi.h>
 
 Stats::Stats(Storage* storage) 
 {
