@@ -13,8 +13,8 @@ class Display
     public:
         Display();
         void run(Stats* stats, int page);
-        // void displayFirstStep(const char* appName);
-        // void displaySecondStep(const char* ipAddress);
+        void configWizardFirstStep(const char* appName);
+        void configWizardSecondStep(const char* ipAddress);
     
     private:
         void pageOne(Stats* stats);
@@ -23,10 +23,11 @@ class Display
         void renderRadiationMetrics(Stats* stats);
         
         void pageTwo(Stats* stats);
-
         int renderNetwork(Stats* stats, int startY);
         int renderBoolStatus(const char* name, bool status, int startY);
         int renderUptime(Stats* stats, int startY);
+
+        void configWizard(const char* header, const char* helpLineOne, const char* helpLineTwo);
 };
 
 #endif

@@ -9,8 +9,7 @@ Aggregator::Aggregator(Storage* storage)
 vector<float> Aggregator::aggregate(Result result)
 {
     this->spanPointer++;
-    // todo
-    int spanSize = this->storage->getParameter(Parameter::DISPLAY_GRAPH_RESOLUTION, "2").toInt();
+    int spanSize = this->storage->getParameter(Parameter::DISPLAY_GRAPH_RESOLUTION, "6").toInt();
 
     this->processSpanBuffer(result.dose, spanSize);
 

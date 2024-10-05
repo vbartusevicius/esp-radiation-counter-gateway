@@ -23,12 +23,8 @@ void Display::run(Stats* stats, int page)
 
 void Display::pageOne(Stats* stats)
 {
-    if (stats->buffer.size() == 0) {
-        return;
-    }
-
-    float max = stats->buffer[0];
-    float min = stats->buffer[0];
+    float max = 0.0;
+    float min = 1.0;
     for (auto &element : stats->buffer) {
         if (element > max) {
             max = element;
@@ -57,55 +53,44 @@ void Display::pageTwo(Stats* stats)
     } while (u8g2.nextPage());
 }
 
-// void Display::displayFirstStep(const char* appName)
-// {
-//     u8g2.firstPage();
-//     do {
-//         u8g2.setFont(u8g2_font_6x10_tr);
-//         u8g2.drawStr(
-//             0, 
-//             this->cursorOffset + 14,
-//             "Welcome! (1/2)"
-//         );
-//         u8g2.setFont(u8g2_font_5x7_tr);
+void Display::configWizardFirstStep(const char* appName)
+{
+    this->configWizard(
+        "Welcome! (1/2)",
+        "Connect to AP to config:",
+        appName
+    );
+}
 
-//         u8g2.drawStr(
-//             0, 
-//             this->cursorOffset + 28,
-//             "Connect to AP:"
-//         );
-//         u8g2.drawStr(
-//             0, 
-//             this->cursorOffset + 38,
-//             appName
-//         );
-//     } while (u8g2.nextPage());
-// }
+void Display::configWizardSecondStep(const char* ipAddress)
+{
+    this->configWizard(
+        "Welcome! (2/2)",
+        "Configure device on:",
+        ipAddress
+    );
+}
 
-// void Display::displaySecondStep(const char* ipAddress)
-// {
-//     u8g2.firstPage();
-//     do {
-//         u8g2.setFont(u8g2_font_6x10_tr);
-//         u8g2.drawStr(
-//             0, 
-//             this->cursorOffset + 14,
-//             "Welcome! (2/2)"
-//         );
-//         u8g2.setFont(u8g2_font_5x7_tr);
+void Display::configWizard(const char* header, const char* helpLineOne, const char* helpLineTwo)
+{
+    int cursor = 0;
 
-//         u8g2.drawStr(
-//             0, 
-//             this->cursorOffset + 28,
-//             "Configure device on:"
-//         );
-//         u8g2.drawStr(
-//             0, 
-//             this->cursorOffset + 38,
-//             ipAddress
-//         );
-//     } while (u8g2.nextPage());
-// }
+    u8g2.firstPage();
+    do {
+        u8g2.setFont(u8g2_font_6x12_mf);
+        cursor += ((this->headerHeight + u8g2.getAscent()) / 2);
+        u8g2.drawStr(1, cursor, header);
+
+        u8g2.setFont(u8g2_font_5x7_tr);
+        int lineHeight = u8g2.getAscent() - u8g2.getDescent();
+        cursor += 6;
+        cursor += lineHeight;
+
+        u8g2.drawStr(0, cursor, helpLineOne);
+        cursor += lineHeight + 2;
+        u8g2.drawStr(0, cursor, helpLineTwo);
+    } while (u8g2.nextPage());
+}
 
 void Display::renderRadiationMetrics(Stats* stats)
 {

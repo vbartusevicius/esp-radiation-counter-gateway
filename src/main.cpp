@@ -2,10 +2,9 @@
 
 #include <Arduino.h>
 // #include <ArduinoOTA.h>
-// #include <ESP8266WiFi.h>
+#include <ESP8266WiFi.h>
 #include <TaskManagerIO.h>
 #include <BasicInterruptAbstraction.h>
-// #include <ExecWithParameter.h>
 
 #include "Logger.h"
 #include "LedController.h"
@@ -98,22 +97,22 @@ void setup()
             buffer
         );
      });
-    taskManager.schedule(repeatSeconds(1), [] { admin->run(stats); });
+    taskManager.schedule(repeatSeconds(2), [] { admin->run(stats); });
 
     if (!wifiConnected) {
-        // display.displayFirstStep("test");
-        // display.displayFirstStep(wifi->getAppName());
-        // return;
+        display.configWizardFirstStep(wifi->getAppName());
+        return;
     }
-    // if (storage->isEmpty()) {
-    //     display.displaySecondStep(WiFi.localIP().toString().c_str());
-    //     return;
-    // }
-    taskManager.schedule(repeatMicros(100), [] {
+    if (storage->isEmpty()) {
+        display.configWizardSecondStep(WiFi.localIP().toString().c_str());
+        return;
+    }
+    taskManager.schedule(repeatMillis(1), [] {
         led->run();
     });
     taskManager.schedule(repeatSeconds(1), [] {
-        display.run(stats, buttonClickEvent->counter % 2); // number of pages
+        int numberOfPages = 2;
+        display.run(stats, buttonClickEvent->counter % numberOfPages);
     });
     // taskManager.schedule(repeatMillis(500), [] { mqttConnected = mqtt->run(); });
 }
